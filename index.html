@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
- <meta name="campus-version" content="4.7.0">
+ <meta name="campus-version" content="4.8.0">
  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
  <meta name="theme-color" content="#f5f8f5"><meta name="description" content="旋转、缩放，走进北京进步小学的明亮校园。">
  <title>进步小学 · 路线课堂</title><link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
@@ -141,6 +141,7 @@ body:has(#detailCard:not([hidden])) .intro-card,body:has(#tourCard:not([hidden])
 .alignment-key{float:right;font-size:11px;font-weight:500;color:#49805f}.word-chip.aligned-choice,.destination-choice.aligned-choice,#planDestinations .aligned-choice{border-color:#69a980;background:#edf7df;color:#2e6945;box-shadow:0 2px 0 #7b9871,inset 0 0 0 1px #b0d59c}.word-chip.aligned-choice.chosen{background:#d6edc0;border-color:#3e8a5b}.word-chip:disabled{background:#f0f0e7;color:#aaa99a;border-color:#e6e6dc;box-shadow:none;opacity:.7;cursor:default}.choice-arrow{color:#40925d;margin-right:3px;font-weight:850}.classroom-active:not(.practice-active) .place-label.lesson-target{border:2px solid #72ad63;color:#316845;background:#f7ffe9;box-shadow:0 0 0 4px #bde49a66,0 3px 12px #49724d33}.classroom-active:not(.practice-active) .place-label.lesson-target::after{content:attr(data-lesson-direction);display:inline-grid;place-items:center;margin-left:5px;padding:1px 4px;border-radius:4px;background:#5f9a61;color:white;font-size:11px;font-weight:750}.classroom-active:not(.practice-active) .place-label.lesson-origin{border:2px solid #58a3b9;color:#388198;background:#edf9fc}.classroom-active:not(.practice-active) .place-label.lesson-origin i{background:#58a3b9}.composer-hint{color:#538060}.practice-active .place-label::after{display:none}
 
 .arrival-label-icon{width:.72em;height:.8em;flex:none;color:#df9d62}.lesson-target .arrival-label-icon{color:#6ba75c}.lesson-origin .arrival-label-icon{color:#469ab3}
+@media(max-height:720px) and (min-width:621px){.classroom-active .place-label{font-size:18px;padding:6px 8px}.classroom-active .arrival-label-icon{width:15px;height:15px}}
 </style>
 </head>
 <body>
@@ -55961,30 +55962,30 @@ function batch(g){g.updateWorldMatrix(true,true);const inv=g.matrixWorld.clone()
 }
 
 function createLandscape(parent,campus){
- const g=group(parent,'校园景观与周边街区'),beds=[],collisions=[];
+ const g=group(parent,'校园景观与周边街区'),beds=[],collisions=[],southShift=campus.south.z-48.75;
  // Surrounding ground and streets are opaque solids, with fog providing distance rather than ghost buildings.
  surface(g,224,194,14,0,-.34,0,'#cfdcc6');
- for(const[z,len]of [[-63,202],[63,202]]){box(g,len,.075,10,0,-.24,z,'#667e87');for(const side of [-1,1])box(g,len,.15,3.1,0,-.105,z+side*6.65,'#d6d5c6');for(let k=-17;k<=17;k++)box(g,2.7,.012,.12,k*5.6,-.193,z,'#e4e7d8');}
- for(const x of [-73,73]){box(g,10,.075,124,x,-.237,0,'#667e87');for(const side of [-1,1])box(g,3.1,.15,124,x+side*6.65,-.105,0,'#d6d5c6');for(let k=-10;k<=10;k++)box(g,.12,.012,2.7,x,-.190,k*5.6,'#e4e7d8');}
+ for(const[z,len]of [[-63,202],[63+southShift,202]]){box(g,len,.075,10,0,-.24,z,'#667e87');for(const side of [-1,1])box(g,len,.15,3.1,0,-.105,z+side*6.65,'#d6d5c6');for(let k=-17;k<=17;k++)box(g,2.7,.012,.12,k*5.6,-.193,z,'#e4e7d8');}
+ for(const x of [-73,73]){box(g,10,.075,124+southShift,x,-.237,southShift/2,'#667e87');for(const side of [-1,1])box(g,3.1,.15,124+southShift,x+side*6.65,-.105,southShift/2,'#d6d5c6');for(let k=-10;k<=10;k++)box(g,.12,.012,2.7,x,-.190,k*5.6,'#e4e7d8');}
  // Curb blocks, sewer covers, tactile paving and crossing stripes make the ground readable at walking height.
- for(let k=-20;k<=20;k++)for(const z of [-69.20,-56.80,56.80,69.20])box(g,4.78,.21,.25,k*4.8,-.12,z,k%2?'#c2c5b7':'#d9d9c9');
+ for(let k=-20;k<=20;k++)for(const z of [-69.20,-56.80,56.80+southShift,69.20+southShift])box(g,4.78,.21,.25,k*4.8,-.12,z,k%2?'#c2c5b7':'#d9d9c9');
  for(let k=-11;k<=11;k++)for(const x of [-79.2,-66.8,66.8,79.2])box(g,.25,.21,4.78,x,-.12,k*4.8,k%2?'#c2c5b7':'#d9d9c9');
- for(const [x,z,rot]of [[campus.north.x,-63,0],[campus.south.x,63,0],[73,12,Math.PI/2]]){
+ for(const [x,z,rot]of [[campus.north.x,-63,0],[campus.south.x,63+southShift,0],[73,12,Math.PI/2]]){
   const crossing=group(g,'人行横道',x,0,z);crossing.rotation.y=rot;for(let k=0;k<8;k++)box(crossing,.60,.016,8.8,-3.1+k*.88,-.182,0,'#f2edda');
  }
- for(const [x,z]of [[-63,-46],[62,36],[22,-72],[-22,72]]){box(g,1.1,.025,.64,x,-.02,z,'#85978e');for(let k=0;k<6;k++)box(g,.83,.035,.044,x,-.004,z-.23+k*.09,'#b4c0b1');}
- for(const z of [-73.7,73.7])for(let k=-16;k<=16;k++)box(g,1.14,.014,.33,k*4.7,-.011,z,'#dcc797');
+ for(const [x,z]of [[-63,-46],[62,36],[22,-72],[-22,72+southShift]]){box(g,1.1,.025,.64,x,-.02,z,'#85978e');for(let k=0;k<6;k++)box(g,.83,.035,.044,x,-.004,z-.23+k*.09,'#b4c0b1');}
+ for(const z of [-73.7,73.7+southShift])for(let k=-16;k<=16;k++)box(g,1.14,.014,.33,k*4.7,-.011,z,'#dcc797');
  const profiles=[[-88,-31,16,14,9,'#c7b7a4',Math.PI/2,false],[-88,3,16,14,10,'#cfae99',Math.PI/2,false],[-87,35,15,14,7,'#c1a093',Math.PI/2,false],[-52,-88,16,15,10,'#cec4b0',0,false],[-17,-88,18,17,13,'#dad3c2',0,true],[20,-87,17,15,10,'#d6c7b1',0,false],[54,-89,15,16,12,'#c8bdad',0,false],[90,-34,17,14,9,'#c7bfab',-Math.PI/2,false],[91,4,15,14,6,'#d7c0a7',-Math.PI/2,false],[92,37,14,12,4,'#cdb8a1',-Math.PI/2,false]];
- for(const p of profiles)building(g,...p);pavilion(g,-38,85,18,'#80a89a');pavilion(g,-6,86,18,'#c9a274');pavilion(g,31,84,21,'#93aaa5');
- for(let k=0;k<9;k++){const z=-45+k*11.6;if(z<30)tree(g,-64,z,.80+(k%3)*.10,k);}for(let k=0;k<8;k++){const z=-40+k*12;if(z<30)tree(g,64,z,.86+(k%2)*.14,k);}
+ for(const p of profiles)building(g,...p);pavilion(g,-38,85+southShift,18,'#80a89a');pavilion(g,-6,86+southShift,18,'#c9a274');pavilion(g,31,84+southShift,21,'#93aaa5');
+ for(let k=0;k<9;k++){const z=-45+k*11.6;if(z<18)tree(g,-64,z,.80+(k%3)*.10,k);}for(let k=0;k<8;k++){const z=-40+k*12;if(z<18)tree(g,64,z,.86+(k%2)*.14,k);}
  for(const[x,z]of [[-42,-74],[-5,-74],[37,-74]])tree(g,x,z,.95,Math.round(x));
- for(const[x,z,rot]of [[-65,-32,Math.PI],[-65,13,Math.PI],[65,-23,0],[65,28,0],[-21,-72,Math.PI/2],[27,-72,Math.PI/2],[-9,72,-Math.PI/2],[41,72,-Math.PI/2]])lamp(g,x,z,rot);
- streetCar(g,-73,-24,'#d6e0d3');streetCar(g,73,-15,'#a0bace',Math.PI);streetCar(g,-5,63,'#dbd8bf',Math.PI/2);streetCar(g,36,-63,'#97adb8',-Math.PI/2);
+ for(const[x,z,rot]of [[-65,-32,Math.PI],[-65,13,Math.PI],[65,-23,0],[65,28,0],[-21,-72,Math.PI/2],[27,-72,Math.PI/2],[-9,72+southShift,-Math.PI/2],[41,72+southShift,-Math.PI/2]])lamp(g,x,z,rot);
+ streetCar(g,-73,-24,'#d6e0d3');streetCar(g,73,-15,'#a0bace',Math.PI);streetCar(g,-5,63+southShift,'#dbd8bf',Math.PI/2);streetCar(g,36,-63,'#97adb8',-Math.PI/2);
  // White inverted-U roadside separators and kerbside parking, visible in the west-side panorama.
  for(let k=0;k<49;k++){const u=group(g,'西侧倒U护栏',-71.6,-.18,-29+k*1.18);cylinder(u,.028,.70,0,.36,-.32,'#e6eadf');cylinder(u,.028,.70,0,.36,.32,'#e6eadf');const a=solid(u,new THREE.TorusGeometry(.32,.028,4,14,Math.PI),material('#e6eadf'));a.rotation.y=Math.PI/2;a.position.y=.72;}
  streetCar(g,-69.5,-18,'#596970');streetCar(g,-69.5,-6,'#c8d2cd');streetCar(g,-69.5,8,'#a8bdc5');streetCar(g,-69.5,22,'#dde1d6');
  // Corner beds follow the leftover planting areas around the racetrack; they never enter its running lanes.
- for(const[x,z,w,d,a,seed]of [[-17,-34.5,8.4,3.3,.16,1],[42,-34.8,9.0,3.4,-.17,2],[47,18.5,6.8,2.6,.24,3],[-18,19.3,7.6,3.0,-.12,4]])beds.push(plantBed(g,x,z,w,d,a,seed));
+ for(const[x,z,w,d,a,seed]of [[-17,-34.5,8.4,3.3,.16,1],[42,-34.8,9.0,3.4,-.17,2],[47,18.5,6.8,2.6,.24,3],[-20,13.7,7.6,3.0,-.12,4]])beds.push(plantBed(g,x,z,w,d,a,seed));
  // Low planted strips behind the curb and entrance planters complete the interior landscape.
  for(const[x,z,w,d,a,seed]of [[-32.8,-3.8,1.8,.82,0,5],[-32.8,4.0,1.8,.82,0,6]])beds.push(plantBed(g,x,z,w,d,a,seed));
  for(let k=0;k<14;k++)bushes(g,-20+k*5.1,-38.2,.49);
@@ -55992,11 +55993,11 @@ function createLandscape(parent,campus){
  // Dense trailing foliage over the existing assembly-stage trough, with real leaf-shaped solids.
  for(let k=0;k<92;k++){const x=campus.stage.x-10.1+(k/91)*20.2,z=campus.stage.z+1.05,leaf=ball(g,.21,x,1.76+(k%3)*.11,z-.16*(k%2),'#678f49',[1.16,.24,1.30]);leaf.rotation.z=(k%5-2)*.18;leaf.rotation.x=(k%3-1)*.3;}
  // Large paving panels and subtle joints stay visible without image textures.
- for(let k=0;k<19;k++)box(g,19.7,.013,.020,-36.4,.216,-33+k*4.1,'#c3c7b8');
- for(let k=0;k<6;k++)box(g,.022,.013,72,-46+k*3.6,.216,.7,'#c3c7b8');
+ for(let k=0;k<19;k++)box(g,19.7,.013,.020,-36.4,.216,-33+k*3.1,'#c3c7b8');
+ for(let k=0;k<6;k++)box(g,.022,.013,59,-46+k*3.6,.216,-6.8,'#c3c7b8');
  for(let k=0;k<20;k++)box(g,.021,.013,8.2,-27+k*3.9,.216,24.8,'#c3c7b8');
  // Street-to-gate ramps account for the small difference between the campus paving and road level.
- for(const[z,x]of [[-51.7,campus.north.x],[51.7,campus.south.x]]){const ramp=box(g,11,.20,6.0,x,-.012,z,'#d6d6c4');ramp.rotation.x=z>0?.043:-.043;}
+ for(const[z,x]of [[-51.7,campus.north.x],[campus.south.z+2.95,campus.south.x]]){const ramp=box(g,11,.20,6.0,x,-.012,z,'#d6d6c4');ramp.rotation.x=z>0?.043:-.043;}
  g.updateWorldMatrix(true,true);for(const bed of beds){const b=new THREE.Box3().setFromObject(bed);collisions.push({name:bed.name,type:'rect',minX:b.min.x,maxX:b.max.x,minZ:b.min.z,maxZ:b.max.z});}
  g.userData={contextBuildings:profiles.length+3,flowerBeds:beds.length,cloudTextures:0,collisions,interpretation:'Photo-inspired neighbourhood masses and visual landscape enhancement; not a survey'};
  batch(g);return g;
@@ -56152,12 +56153,12 @@ return {createAtmosphere};})();
 const routeEngineModule=(()=>{// Campus paths use photo-relative model units; no measured distance is implied.
 const GROUP_COLORS=['#ed7655','#3d9ae3','#68a34b','#a17ada','#e5a532','#24aa9e','#d46a9d','#637fdf','#ba8b51','#5199ac'];
 const DESTINATIONS=[
- {id:'south',name:'南门',x:-12,z:40.5,icon:'gate'},
+ {id:'south',name:'南门',x:-12,z:19.2,icon:'gate'},
  {id:'building',name:'教学楼',x:-29.2,z:.5,icon:'school'},
  {id:'field',name:'操场',x:14,z:.5,icon:'ball'},
- {id:'stage',name:'主席台',x:14,z:40.5,icon:'flag'},
- {id:'garden',name:'一米菜园',x:-29.2,z:40.5,icon:'leaf'},
- {id:'sports',name:'体育器材棚',x:35,z:40.5,icon:'racket'},
+ {id:'stage',name:'主席台',x:14,z:19.2,icon:'flag'},
+ {id:'garden',name:'一米菜园',x:-29.2,z:19.2,icon:'leaf'},
+ {id:'sports',name:'体育器材棚',x:35,z:19.2,icon:'racket'},
  {id:'parking',name:'停车场',x:-29.2,z:-36.0,icon:'car'},
  {id:'north',name:'北门',x:-29.2,z:-47.9,icon:'gate'},
 ];
@@ -56211,9 +56212,10 @@ class Walker {
 }
 // Upgrade completed cardinal legs saved before the flag arrival points moved.
 const previousArrival={south:{x:-12,z:44.5},building:{x:-26.4,z:.5},field:{x:14,z:.5},stage:{x:14,z:44.5},garden:{x:-26.4,z:44.5},sports:{x:35,z:44.5},parking:{x:-26.4,z:-36},north:{x:-26.4,z:-44.5}};
-function upgradeArrivalRoute(src,layout){if(layout==='arrival-flags-v1'||!src?.sentences?.length||!Array.isArray(src.trace))return src;const copy={...src,trace:src.trace.map(p=>({...p})),position:src.position?{...src.position}:null};for(const s of src.sentences){const a=DESTINATIONS.find(d=>d.name===s.startName),b=DESTINATIONS.find(d=>d.name===s.endName),oldA=previousArrival[a?.id],oldB=previousArrival[b?.id];if(!oldA||!oldB||!cardinalDirection(a,b)||!src.trace[s.fromIndex]||!src.trace[s.toIndex]||distance(src.trace[s.fromIndex],oldA)>.01||distance(src.trace[s.toIndex],oldB)>.01)continue;const axis=oldA.x===oldB.x?'z':'x',delta=oldB[axis]-oldA[axis];if(!delta)continue;for(let k=s.fromIndex;k<=s.toIndex;k++){const p=src.trace[k],t=Math.max(0,Math.min(1,(p[axis]-oldA[axis])/delta));copy.trace[k]={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};}if(copy.position&&distance(src.position,oldB)<.01)copy.position={x:b.x,z:b.z};}return copy;}
+const flagArrival=Object.fromEntries(DESTINATIONS.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?40.5:d.z}]));
+function upgradeArrivalRoute(src,layout){if(layout==='compact-campus-v2'||!Array.isArray(src?.trace))return src;const move=p=>{if(!p)return p;const oldRow=layout==='arrival-flags-v1'?40.5:44.5,z=p.z>.5?.5+(p.z-.5)*(19.2-.5)/(oldRow-.5):p.z;return{...p,z};},copy={...src,trace:src.trace.map(move),position:move(src.position)};for(const s of src.sentences||[]){const a=DESTINATIONS.find(d=>d.name===s.startName),b=DESTINATIONS.find(d=>d.name===s.endName),oldA=layout==='arrival-flags-v1'?flagArrival[a?.id]:previousArrival[a?.id],oldB=layout==='arrival-flags-v1'?flagArrival[b?.id]:previousArrival[b?.id];if(!oldA||!oldB||!cardinalDirection(a,b)||!src.trace[s.fromIndex]||!src.trace[s.toIndex]||distance(src.trace[s.fromIndex],oldA)>.01||distance(src.trace[s.toIndex],oldB)>.01)continue;const axis=oldA.x===oldB.x?'z':'x',delta=oldB[axis]-oldA[axis];if(!delta)continue;for(let k=s.fromIndex;k<=s.toIndex;k++){const p=src.trace[k],t=Math.max(0,Math.min(1,(p[axis]-oldA[axis])/delta));copy.trace[k]={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};}if(copy.position&&distance(src.position,oldB)<.01)copy.position={x:b.x,z:b.z};}return copy;}
 function sanitizeGroups(data,nav){if(!data||data.version!==1||!Array.isArray(data.groups)||data.groups.length!==10)throw Error('请导入本课件导出的10组路线文件。');const groups=makeGroups();for(let i=0;i<10;i++){const src=upgradeArrivalRoute(data.groups[i],data.layout);if(!src||src.id!==i+1||!destination(src.start)||!Array.isArray(src.stops)||src.stops.length>32||src.stops.some(id=>!destination(id)))throw Error('路线文件中的分组或地点无效。');const g=groups[i];g.start=src.start;g.stops=[...src.stops];g.routeName=String(src.routeName||g.routeName).slice(0,60);g.kind=src.kind==='recorded'?'recorded':'planned';if(src.trace!==undefined&&(!Array.isArray(src.trace)||src.trace.length>15000))throw Error('录制路线数据无效。');g.trace=(src.trace||[]).map(p=>{if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.z)||nav.blocked(p.x,p.z))throw Error('录制路线含有校园范围外或障碍物内的点。');return{x:p.x,z:p.z};});if(g.kind==='recorded')for(let j=1;j<g.trace.length;j++)if(!nav.clear(g.trace[j-1],g.trace[j]))throw Error('录制路线穿过障碍物，请重新录制。');if(src.sentences!==undefined){if(!Array.isArray(src.sentences)||src.sentences.length>15000)throw Error('路线句子数据无效。');let last=0;g.sentences=src.sentences.map(v=>{if(!v||!['北','东','南','西'].includes(v.heading)||!Number.isInteger(v.fromIndex)||!Number.isInteger(v.toIndex)||v.fromIndex<last||v.toIndex<=v.fromIndex||v.toIndex>=g.trace.length||typeof v.startName!=='string'||typeof v.endName!=='string'||!v.startName.length||!v.endName.length||v.startName.length>40||v.endName.length>40)throw Error('路线句子与足迹不对应。');last=v.toIndex;return{startName:v.startName,endName:v.endName,heading:v.heading,fromIndex:v.fromIndex,toIndex:v.toIndex};});}g.elapsed=Number.isFinite(src.elapsed)?Math.max(0,src.elapsed):0;g.lastPlace=destination(src.lastPlace)?.id||null;if(src.position&&!nav.blocked(src.position.x,src.position.z))g.position={x:src.position.x,z:src.position.z};}return groups;}
-function serializeGroups(groups){return{version:1,layout:'arrival-flags-v1',title:'北京进步小学 · 10组校园路线',savedAt:new Date().toISOString(),groups:groups.map(({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace})=>({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace}))};}
+function serializeGroups(groups){return{version:1,layout:'compact-campus-v2',title:'北京进步小学 · 10组校园路线',savedAt:new Date().toISOString(),groups:groups.map(({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace})=>({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace}))};}
 
 return {Navigation,GROUP_COLORS,DESTINATIONS,destination,cardinalDirection,alignedDestinations,makeGroups,planRoute,pathLength,Walker,JourneyRecorder,appendTrace,serializeGroups,sanitizeGroups,direction,distance,resolveMovement,visibleRouteGroups};})();
 const lessonGroundModule=(()=>{const {DESTINATIONS,destination}=routeEngineModule;
@@ -56225,18 +56227,18 @@ function createLessonGround(root,campus,solids=[]){
  const rect=(x0,x1,z0,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
  function westEdges(z){let left=west-half,right=west+half;const f=campus.field,r=f.radius+f.lanes*f.laneWidth+.65,dz=z-f.z;if(Math.abs(dz)<r)right=Math.min(right,f.x-f.straight/2-Math.sqrt(r*r-dz*dz));
   const parking=campus.parking;if(z>parking.z-parking.depth/2-.2&&z<parking.z+parking.depth/2+.2)left=Math.max(left,parking.x+parking.width/2+.25);
-  if(z>campus.garden.z-5.55&&z<campus.garden.z+5.55)left=Math.max(left,campus.garden.x+5.55);
+  if(z>campus.garden.z-5.55*campus.gardenDepthScale&&z<campus.garden.z+5.55*campus.gardenDepthScale)left=Math.max(left,campus.garden.x+5.55);
   for(const s of solids)if(s.type==='rect'&&z>s.minZ-.15&&z<s.maxZ+.15&&s.maxX>left&&s.minX<right){if(s.maxX<west-.3)left=Math.max(left,s.maxX+.2);else if(s.minX>west+.3)right=Math.min(right,s.minX-.2);}
   return[left,right];
  }
- const breaks=[-48,row+half];for(let z=-48;z<row+half;z+=.42)breaks.push(z);for(const s of solids)if(s.type==='rect')for(const z of [s.minZ-.16,s.minZ-.14,s.maxZ+.14,s.maxZ+.16])if(z>-48&&z<row+half)breaks.push(z);breaks.push(campus.parking.z-campus.parking.depth/2-.21,campus.parking.z+campus.parking.depth/2+.21,campus.garden.z-5.56);breaks.sort((a,b)=>a-b);
+ const breaks=[-48,row+half];for(let z=-48;z<row+half;z+=.42)breaks.push(z);for(const s of solids)if(s.type==='rect')for(const z of [s.minZ-.16,s.minZ-.14,s.maxZ+.14,s.maxZ+.16])if(z>-48&&z<row+half)breaks.push(z);breaks.push(campus.parking.z-campus.parking.depth/2-.21,campus.parking.z+campus.parking.depth/2+.21,campus.garden.z-5.56*campus.gardenDepthScale);breaks.sort((a,b)=>a-b);
  for(let i=1;i<breaks.length;i++){const a=breaks[i-1],b=breaks[i];if(b-a<.001)continue;const [la,ra]=westEdges(a+.0001),[lb,rb]=westEdges(b-.0001);if(ra-la<.15||rb-lb<.15)continue;const poly=[[la,a],[ra,a],[rb,b],[lb,b]];polygons.push(poly);layers[0].push(poly);layers[1].push([[la+.20,a],[ra-.20,a],[rb-.20,b],[lb+.20,b]]);}
- const south=rect(west-.35,destination('sports').x+3.8,row-half,row+half),entrance=rect(campus.south.x-3.5,campus.south.x+3.5,row,48);
+ const south=rect(west-.35,destination('sports').x+3.8,row-half,row+half),entrance=rect(campus.south.x-3.5,campus.south.x+3.5,row,campus.south.z-.75);
  for(const p of [south,entrance]){polygons.push(p);layers[0].push(p);const xs=p.map(v=>v[0]),zs=p.map(v=>v[1]);layers[1].push(rect(Math.min(...xs)+.2,Math.max(...xs)-.2,Math.min(...zs)+.2,Math.max(...zs)-.2));}
  // Soft alternating paving blocks, kept clear of the track and the planted beds.
  for(let z=-47.8,k=0;z<row+half-.2;z+=1.7,k++){const z1=Math.min(z+1.58,row+half-.2),[l0,r0]=westEdges(z),[l1,r1]=westEdges(z1);const left=Math.max(l0,l1)+.24,right=Math.min(r0,r1)-.24;if(right-left<.5)continue;const n=Math.max(1,Math.ceil((right-left)/2.2));for(let j=0;j<n;j++){const w=(right-left)/n,x=left+j*w;layers[2+(j+k)%2].push(rect(x+.025,x+w-.025,z,z1));}}
  for(let x=west-.11,k=0;x<destination('sports').x+3.5;x+=2.2,k++)for(let z=row-half+.24,j=0;z<row+half-.3;z+=1.65,j++)layers[2+(j+k)%2].push(rect(x,Math.min(x+2.10,destination('sports').x+3.55),z,Math.min(z+1.55,row+half-.24)));
- for(let x=campus.south.x-3.24,k=0;x<campus.south.x+3.24;x+=2.2,k++)for(let z=row+half,j=0;z<47.76;z+=1.6,j++)layers[2+(j+k)%2].push(rect(x,Math.min(x+2.1,campus.south.x+3.24),z,Math.min(z+1.5,47.76)));
+ for(let x=campus.south.x-3.24,k=0;x<campus.south.x+3.24;x+=2.2,k++)for(let z=row+half,j=0;z<campus.south.z-.99;z+=1.6,j++)layers[2+(j+k)%2].push(rect(x,Math.min(x+2.1,campus.south.x+3.24),z,Math.min(z+1.5,campus.south.z-.99)));
  function surface(polys,color,y){const positions=[];for(const poly of polys){const vertices=poly.map(p=>new THREE.Vector2(...p));for(const face of THREE.ShapeUtils.triangulateShape(vertices,[]))for(const i of face)positions.push(poly[i][0],y,poly[i][1]);}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color,roughness:1,side:THREE.DoubleSide}));mesh.name='课堂步行铺砖';mesh.receiveShadow=true;mesh.userData.lessonPavement=true;group.add(mesh);}
  for(const [i,color]of ['#e1c592','#8fa49a','#cddbcf','#bcccbe'].entries())surface(layers[i],color,.235+i*.006);
  const poleMaterial=new THREE.MeshStandardMaterial({color:'#d7b26e',metalness:.2,roughness:.45}),white=new THREE.MeshStandardMaterial({color:'#fff9df',side:THREE.DoubleSide});
@@ -56260,7 +56262,7 @@ const {createCampus,setGlyphData,CAMPUS}=(()=>{const {createLandscape}=landscape
 const {createLessonGround}=lessonGroundModule;
 // Photo-relative model units normalized around a 20.8-unit building, not surveyed metres.
 // Source evidence and unresolved details are documented in PHOTO-AUDIT.md.
-const CAMPUS={width:118,depth:98,building:{x:-35.2,z:.5,rotation:Math.PI/2},field:{x:14,z:-6,straight:40,radius:16.7,lanes:4,laneWidth:1.12},stage:{x:14,z:47},garden:{x:-35.2,z:42},sports:{x:35,z:47},parking:{x:-41.5,z:-38.25,width:22.1,depth:18.5},south:{x:-12,z:48.75},north:{x:-26.4,z:-48.75}};
+const CAMPUS={width:118,depth:79,centerZ:-9.5,southEdge:30,gardenDepthScale:.55,building:{x:-35.2,z:.5,rotation:Math.PI/2},field:{x:14,z:-6,straight:40,radius:16.7,lanes:4,laneWidth:1.12},stage:{x:14,z:25.7},garden:{x:-29.1,z:22.5},sports:{x:35,z:25.7},parking:{x:-41.5,z:-38.25,width:22.1,depth:18.5},south:{x:-12,z:29.75},north:{x:-26.4,z:-48.75}};
 const mats={};const boxGeo=new THREE.BoxGeometry(1,1,1),sphereGeo=new THREE.SphereGeometry(1,10,8),cylinderGeo=new THREE.CylinderGeometry(1,1,1,12),towerGeo=new THREE.CylinderGeometry(1,1,1,96);
 const palette={'#73a5bf':'#4388af','#81b1c0':'#558fa7','#d57c62':'#bc6048','#95bb69':'#6c9f3e','#a6c779':'#7eae45','#81aa5c':'#609438','#99bc7a':'#83ad58','#86ad6c':'#709947','#aec98c':'#9aba73','#98bd79':'#81ae59'};
 function mat(color,options={}){color=palette[color]||color;const key=color+JSON.stringify(options);return mats[key]??=(new THREE.MeshStandardMaterial({color,roughness:.8,...options}));}
@@ -56720,11 +56722,11 @@ function stage(root){
  g.userData={photoReference:3,wallHeight:2.78,stepsPerSide:7,vents:3,clockDiameter:.62,measured:false};return g;
 }
 function garden(root){
- const c=CAMPUS.garden,g=group(root,'一米菜园',c.x,0,c.z);
+ const c=CAMPUS.garden,g=group(root,'一米菜园',c.x,0,c.z);g.scale.z=CAMPUS.gardenDepthScale;
  box(g,10.6,.09,10.7,0,.205,0,'#d4d7bd');
  // Recreate the photographed small modular crates rather than three-metre beds.
  for(let row=0;row<3;row++)for(let col=0;col<2;col++){
-  const x=-2.08+col*2.64,z=-2.34+row*2.25,b=group(g,'菜园种植箱-'+row+'-'+col,x,0,z);
+  const x=-3.6+col*2.0,z=-2.34+row*2.25,b=group(g,'菜园种植箱-'+row+'-'+col,x,0,z);
   box(b,1.74,.48,1.55,0,.45,0,'#82908b');box(b,1.60,.07,1.39,0,.70,0,'#7b694c');
   for(let j=0;j<7;j++){box(b,.050,.45,.035,-.78+j*.26,.47,.79,'#a8b3aa');box(b,.050,.45,.035,-.78+j*.26,.47,-.79,'#a8b3aa');}
   for(const side of [-1,1])for(let j=0;j<6;j++)box(b,.033,.45,.05,side*.89,.47,-.63+j*.25,'#a2afa6');
@@ -56735,7 +56737,7 @@ function garden(root){
   if(row===0&&col===0){for(const xx of [-.50,.48]){rod(b,[xx,.70,-.3],[xx,2.0,.04],.015,'#92986a');for(let i=0;i<4;i++)sphere(b,.18,xx,1.0+i*.22,-.1+i*.06,'#85a955',[.9,.40,1]);}}
  }
  // Keep the sign at a human scale and next to the beds, facing the open campus.
- box(g,.11,1.03,.12,2.38,.81,1.68,'#e8eadd');const sign=group(g,'一米菜园几何标志',2.40,2.13,1.78);sign.rotation.y=Math.PI/2;sign.scale.setScalar(.51);gardenSign(sign);
+ box(g,.11,1.03,.12,2.38,.81,1.68,'#e8eadd');const sign=group(g,'一米菜园几何标志',2.40,2.13,1.78);sign.rotation.y=Math.PI/2;sign.scale.set(.51/CAMPUS.gardenDepthScale,.51,.51);gardenSign(sign);
  spiralStair(g,-4.05,-3.30);
  box(g,4.7,.12,4.80,-2.85,4.68,-2.83,'#c7cdbd');for(const xx of [-5.1,-.65])box(g,.14,4.5,.14,xx,2.37,-4.95,'#9aaba0');
  fence(g,-5.22,0,10.35,Math.PI/2);fence(g,0,5.20,10.5);
@@ -56845,29 +56847,29 @@ function gate(root,x,z,name){
 function optimize(root){root.updateMatrixWorld(true);const buckets=new Map();const list=[];root.traverse(o=>{if(o.isMesh&&[boxGeo,sphereGeo,cylinderGeo,towerGeo].includes(o.geometry)){const key=o.geometry.uuid+'|'+o.material.uuid;if(!buckets.has(key))buckets.set(key,{geometry:o.geometry,material:o.material,items:[]});buckets.get(key).items.push(o);list.push(o);}});for(const {geometry,material,items}of buckets.values()){const ins=new THREE.InstancedMesh(geometry,material,items.length);ins.name='静态校园构件';ins.castShadow=true;ins.receiveShadow=true;items.forEach((m,i)=>ins.setMatrixAt(i,m.matrixWorld));ins.instanceMatrix.needsUpdate=true;root.add(ins);}list.forEach(o=>o.parent.remove(o));}
 function createCampus(scene){
  const root=group(scene,'北京进步小学'),W=CAMPUS.width,D=CAMPUS.depth;
- box(root,W,.35,D,0,-.14,0,'#d6ccb6');box(root,W+.45,.14,D+.45,0,.08,0,'#eee8d6');
- box(root,22,.06,79,-36.7,.175,-.1,'#dddfce');box(root,72,.06,10,5,.175,25.0,'#dfdfcf');
- const edgeX=W/2-.25,edgeZ=D/2-.25;
- box(root,.50,1.90,18.4,-edgeX,1,-39.55,'#d5c9b0');box(root,.50,1.90,19.4,-edgeX,1,39.0,'#d5c9b0');
+ box(root,W,.35,D,0,-.14,CAMPUS.centerZ,'#d6ccb6');box(root,W+.45,.14,D+.45,0,.08,CAMPUS.centerZ,'#eee8d6');
+ box(root,22,.06,72,-36.7,.175,-4.5,'#dddfce');
+ const edgeX=W/2-.25,edgeNorth=-48.75,edgeSouth=CAMPUS.south.z;
+ box(root,.50,1.90,18.4,-edgeX,1,-39.55,'#d5c9b0');box(root,.50,1.90,9.4,-edgeX,1,edgeSouth-4.7,'#d5c9b0');
  // Photographed west frontage uses open green railings, not an opaque wall.
  for(let k=0;k<96;k++)box(root,.065,1.65,.036,-edgeX,1.05,-29.2+k*.614,'#527663');
  box(root,.09,.05,59,-edgeX,1.92,0,'#6a8b75');box(root,.26,.17,59,-edgeX,.26,0,'#c5cdb7');
  for(let k=0;k<49;k++)sphere(root,.32,-edgeX+.43,.51,-28.8+k*1.18,'#7d995f',[1,.72,1.4]);
- box(root,.50,1.90,D-1,edgeX,1,0,'#d5c9b0');
- for(const[z,cx]of [[-edgeZ,CAMPUS.north.x],[edgeZ,CAMPUS.south.x]]){
+ box(root,.50,1.90,D-.5,edgeX,1,CAMPUS.centerZ,'#d5c9b0');
+ for(const[z,cx]of [[edgeNorth,CAMPUS.north.x],[edgeSouth,CAMPUS.south.x]]){
   const leftEnd=cx-5.35,rightStart=cx+8.55;
   box(root,leftEnd+edgeX,1.90,.50,(-edgeX+leftEnd)/2,1,z,'#d5c9b0');
   box(root,edgeX-rightStart,1.90,.50,(rightStart+edgeX)/2,1,z,'#d5c9b0');
  }
  const blocks=[building(root),field(root),stage(root),garden(root),sports(root),parking(root)];
- gate(root,CAMPUS.south.x,edgeZ,'南门');gate(root,CAMPUS.north.x,-edgeZ,'北门');
+ gate(root,CAMPUS.south.x,edgeSouth,'南门');gate(root,CAMPUS.north.x,edgeNorth,'北门');
  // Irregular mature trees follow the photographed perimeter and stage backdrop.
  for(const[x,z,scale,seed]of [[-55,-27,1.48,2],[-56,-13,1.28,5],[-56,8,1.60,8],[-54,30,1.65,2],[-48,39,1.80,7],
   [-22,39,1.72,8],[-8,38,1.85,1],[7,40,1.62,7],[20,41,1.87,4],[34,40,1.70,3],[47,38,1.58,8],
-  [57,-22,1.36,4],[57,1,1.48,3],[55,23,1.41,2],[-22,-42,1.34,8],[1,-43,1.49,7],[25,-42,1.42,4],[49,-40,1.25,2]]){if(z>=30)continue;if(x<=-54)bareStreetTree(root,x,z,scale*.88,seed);else tree(root,x,z,scale,seed);}
- diamondMesh(root,82,3.20,7,2.01,51.5);for(let k=0;k<=10;k++)box(root,.07,3.4,.07,-34+k*8.2,1.98,51.55,'#91a38b');
+  [57,-22,1.36,4],[57,1,1.48,3],[55,23,1.41,2],[-22,-42,1.34,8],[1,-43,1.49,7],[25,-42,1.42,4],[49,-40,1.25,2]]){if(z>=18)continue;if(x<=-54)bareStreetTree(root,x,z,scale*.88,seed);else tree(root,x,z,scale,seed);}
+ diamondMesh(root,82,3.20,7,2.01,32.5);for(let k=0;k<=10;k++)box(root,.07,3.4,.07,-34+k*8.2,1.98,32.55,'#91a38b');
  // Collision regions are transformed from the same local solids used by the landmarks.
- const solids=[];
+ const solids=[{name:'校园南边界',type:'rect',minX:-59,maxX:59,minZ:30.3,maxZ:49}];
  function rect(g,x0,x1,z0,z1){
   const a=g.localToWorld(new THREE.Vector3(x0,0,z0)),b=g.localToWorld(new THREE.Vector3(x1,0,z1));
   solids.push({name:g.name,type:'rect',minX:Math.min(a.x,b.x),maxX:Math.max(a.x,b.x),minZ:Math.min(a.z,b.z),maxZ:Math.max(a.z,b.z)});
@@ -56876,7 +56878,7 @@ function createCampus(scene){
  rect(bld,-16.9,16.7,-12.7,-3.7);rect(bld,9.1,26.75,-13.2,-9.2);rect(bld,-27.05,-16.9,-14.1,-9.12);rect(bld,27.0,30.4,-21.035,-17.935);rect(bld,-19.38,-11.78,-7.52,.10);rect(bld,18.19,28.01,-9.445,.05);rect(bld,20.395,27.85,-20.75,-9.42);
  const tower=bld.localToWorld(new THREE.Vector3(-22.28,0,-4.62));solids.push({name:'圆弧楼体',type:'circle',x:tower.x,z:tower.z,radius:4.62});
  const st=blocks[2];st.updateWorldMatrix(true,true);rect(st,-12,12,-1.95,1.95);rect(st,12.85,18.20,-3.2,1.37);
- const ga=blocks[3];ga.updateWorldMatrix(true,true);for(let r=0;r<3;r++)for(let c=0;c<2;c++)rect(ga,-2.95+c*2.64,-1.21+c*2.64,-3.12+r*2.25,-1.56+r*2.25);
+ const ga=blocks[3];ga.updateWorldMatrix(true,true);for(let r=0;r<3;r++)for(let c=0;c<2;c++)rect(ga,-4.47+c*2.0,-2.73+c*2.0,-3.12+r*2.25,-1.56+r*2.25);
  const sp=blocks[4];sp.updateWorldMatrix(true,true);rect(sp,-5.405,-.355,1.35,1.65);rect(sp,.8875,5.3125,1.35,1.65);rect(sp,-5.4,5.4,-1.6,-1.27);
  // The classroom's walkers also avoid the parked vehicles.
  blocks[5].updateWorldMatrix(true,true);blocks[5].traverse(o=>{if(/^北侧直列车-|^南侧斜列车-/.test(o.name)){const b=new THREE.Box3().setFromObject(o);solids.push({name:o.name,type:'rect',minX:b.min.x,maxX:b.max.x,minZ:b.min.z,maxZ:b.max.z});}});
@@ -57146,7 +57148,7 @@ function createClassroom(scene,root,options){
  function paintLive(){root.userData.lessonGround.highlight(flagChoices,selected().lastPlace);paintDestinationChoices();const g=selected(),job=jobs.get(g.id),session=recorder.active(g),ratio=job?.walker.duration?job.walker.elapsed/job.walker.duration:0;$('studentStatus').textContent=session?(recorder.paused(g)?'已暂停':job?'正在前往地点':'自由行走 · 自动留线'):'先点“开始出发”';$('routeProgress').style.width=Math.round(ratio*100)+'%';$('routeProgressText').textContent=job?Math.round(ratio*100)+'%':'';if(job){$('routeScrub').value=Math.round(ratio*100);$('routeScrubValue').textContent=Math.round(ratio*100)+'%';}const lines=(g.sentences||[]).map(item=>fullSentence(item.startName,item.heading,item.endName));if(!session&&!lines.length)lines.push(...summary(g));$('panelRecordCount').textContent=lines.length?lines.length+'段':'';$('panelRouteRecord').textContent=lines.at(-1)||'暂无行程记录';$('panelRouteRecord').classList.toggle('empty',!lines.length);$('routeTime').textContent=Math.floor((g.elapsed||0)/60).toString().padStart(2,'0')+':'+Math.floor((g.elapsed||0)%60).toString().padStart(2,'0');$('lastArrival').textContent=g.lastPlace?'已到达'+destination(g.lastPlace).name:'上北下南 · 左西右东';const route=getDisplayRoute(g);$('miniRoute').setAttribute('d',routePath(route.path));$('miniRoute').setAttribute('stroke',g.color);$('miniStudent').outerHTML=studentMapIcon(g,true);$('showAllRoutesButton').disabled=!groups.some(v=>v.trace.length>1);$('exportRouteImage').disabled=exportingImage||!visibleRouteGroups(groups,g.id,showAll).length;const canvas=$('scene');canvas.dataset.journeyActive=String(session);canvas.dataset.journeyPaused=String(recorder.paused(g));canvas.dataset.tracePoints=g.trace.length;canvas.dataset.cameraMode=cameraMode;canvas.dataset.cameraTransition=String(options.isTransitioning());canvas.dataset.cameraPosition=JSON.stringify(options.camera.position.toArray());canvas.dataset.cameraTarget=JSON.stringify(options.controls.target.toArray());}
  function paintDestinationChoices(){const g=selected(),from=DESTINATIONS.find(p=>distance(g.position,p)<.01),available=recorder.canMove(g)&&!jobs.has(g.id);document.querySelectorAll('[data-destination]').forEach(b=>{const heading=cardinalDirection(from,destination(b.dataset.destination));b.disabled=!available||!heading;b.classList.toggle('aligned-choice',available&&!!heading);b.title=heading?'正'+heading+'方':'先到达地点，再选正对方向的终点';});}
  function groundMap(){return '<g class="map-pavement" fill="#cddbcf" stroke="#dfc99d" stroke-width=".24">'+root.userData.lessonGround.summary.polygons.map(p=>'<polygon points="'+p.map(([x,z])=>(x+59).toFixed(2)+','+(z+49).toFixed(2)).join(' ')+'"/>').join('')+'</g>'+'<g class="map-arrival-flags">'+DESTINATIONS.map(d=>'<g transform="translate('+(d.x+59)+' '+(d.z+49)+')"><title>'+escape(d.name)+'到达旗</title><circle r="1" fill="#fff8df" stroke="#d7af64" stroke-width=".35"/><path d="M.7 0V-4.2" stroke="#957e57" stroke-width=".3"/><path d="M.85-4.2h3.2l-.7.8.7.8H.85Z" fill="#e48463"/><path d="m1.8-3.4.35.3.7-.75" fill="none" stroke="#fff8df" stroke-width=".24"/></g>').join('')+'</g>';}
- function baseMap(){return`<g stroke-linejoin="round"><rect x="0" y="0" width="118" height="98" rx="3" fill="#faf6e8" stroke="#d7daca" stroke-width=".8"/><rect x="1.5" y="3" width="22.1" height="18.5" rx="1" fill="#a9c8d6"/><path d="M6 24h17v53H6zM21 33h4v11h-4M21 67h4v9h-4" fill="#e4cba5" stroke="#bfa37e" stroke-width=".55"/><path d="M11 24h7v53h-7" fill="#c8d7dc"/><rect x="10" y="35" width="10" height="7" rx=".7" fill="#73abc3"/><rect x="32.52" y="21.82" width="82.96" height="42.36" rx="21.18" fill="#e78870"/><rect x="36.3" y="25.3" width="73.4" height="33.4" rx="16.7" fill="#a6c976"/><g fill="none" stroke="#fff8de" stroke-width=".36"><rect x="47" y="28.8" width="52" height="28.4"/><path d="M73 28.8v28.4M47 34h9v18h-9m52-18h-9v18h9"/><circle cx="73" cy="43" r="5.5"/></g><path d="M59 94h30v4H59z" fill="#d9c5a1" stroke="#bda985" stroke-width=".45"/><path d="M88.6 94.3h10.8v3.4H88.6z" fill="#a4c4cb"/><path d="M18.4 85.6h10.8v11.2H18.4z" fill="#b9cc89"/><g fill="#91b478"><circle cx="44" cy="16" r="1.8"/><circle cx="81" cy="16" r="1.7"/><circle cx="105" cy="20" r="1.8"/><circle cx="114" cy="67" r="1.8"/></g><path d="M40 98h14M26 0h13" stroke="#f1f8e5" stroke-width="2"/><g fill="#fff9eb" stroke="#debf8d" stroke-width=".3">${[0,1,2].map(j=>[0,1].map(i=>`<rect x="${21+i*2.8}" y="${88+j*2.5}" width="1.9" height="1.8"/>`).join('')).join('')} </g>${groundMap()}</g>`;}
+function baseMap(){const s=CAMPUS.stage,g=CAMPUS.garden,e=CAMPUS.sports,depth=10.7*CAMPUS.gardenDepthScale,rect=(x,z,w,d,fill)=>'<rect x="'+(x+59-w/2)+'" y="'+(z+49-d/2)+'" width="'+w+'" height="'+d+'" rx=".5" fill="'+fill+'"/>';return '<g stroke-linejoin="round"><rect x="0" y="0" width="118" height="'+CAMPUS.depth+'" rx="3" fill="#faf6e8" stroke="#d7daca" stroke-width=".8"/><rect x="1.5" y="3" width="22.1" height="18.5" rx="1" fill="#a9c8d6"/><path d="M6 24h17v53H6zM21 33h4v11h-4M21 67h4v9h-4" fill="#e4cba5" stroke="#bfa37e" stroke-width=".55"/><path d="M11 24h7v53h-7" fill="#c8d7dc"/><rect x="10" y="35" width="10" height="7" rx=".7" fill="#73abc3"/><rect x="32.52" y="21.82" width="82.96" height="42.36" rx="21.18" fill="#e78870"/><rect x="36.3" y="25.3" width="73.4" height="33.4" rx="16.7" fill="#a6c976"/><g fill="none" stroke="#fff8de" stroke-width=".36"><rect x="47" y="28.8" width="52" height="28.4"/><path d="M73 28.8v28.4M47 34h9v18h-9m52-18h-9v18h9"/><circle cx="73" cy="43" r="5.5"/></g>'+rect(s.x,s.z,24,3.8,'#d9c5a1')+rect(s.x-16.1,s.z+.82,7.4,5.35,'#d9c5a1')+rect(e.x,e.z,10.8,3.4,'#a4c4cb')+rect(g.x,g.z,10.6,depth,'#b9cc89')+'<g fill="#91b478"><circle cx="44" cy="16" r="1.8"/><circle cx="81" cy="16" r="1.7"/><circle cx="105" cy="20" r="1.8"/></g><path d="M40 '+CAMPUS.depth+'h14M26 0h13" stroke="#f1f8e5" stroke-width="2"/>'+groundMap()+'<g fill="#fff9eb" stroke="#debf8d" stroke-width=".3">'+[0,1,2].map(j=>[0,1].map(i=>rect(g.x-3.6+i*2,g.z+(-2.34+j*2.25)*CAMPUS.gardenDepthScale,1.74,1.55*CAMPUS.gardenDepthScale,'#fff9eb')).join('')).join('')+'</g></g>';}
  function mapSvg(all=mapAll,exporting=false){
   const chosen=all?groups:[selected()],annotationGroups=exporting?chosen:[selected()];let lines='',pins='',annotations='',cardY=3;
   for(const g of chosen){const r=getDisplayRoute(g);if(r.path.length<2)continue;const d=routePath(r.path),selectedGroup=g.id===selected().id;
@@ -57156,14 +57158,14 @@ function createClassroom(scene,root,options){
   for(const g of annotationGroups){const r=getDisplayRoute(g),sentences=summary(g);if(r.path.length<2||!sentences.length)continue;const textLines=sentences.flatMap((s,i)=>wrapMapText((i+1)+'. '+s)),height=10+textLines.length*4.8,mid=r.path[Math.floor((r.path.length-1)/2)];
    annotations+='<g data-map-route="'+g.id+'"><path d="M'+(mid.x+59)+' '+(mid.z+49)+' L122 '+(cardY+4)+' H128" fill="none" stroke="'+g.color+'" stroke-width=".45"/><rect x="128" y="'+cardY+'" width="77" height="'+height+'" rx="2" fill="#fffef5" stroke="'+g.color+'" stroke-width=".6"/><text x="131" y="'+(cardY+6)+'" fill="'+g.color+'" font-size="4.3" font-weight="700">第'+g.id+'组 · '+(r.actual?'已走':'设计')+'路线总结</text><text x="131" y="'+(cardY+12)+'" font-size="3.5" fill="#345d48">'+textLines.map((s,i)=>'<tspan x="131" dy="'+(i?4.8:0)+'">'+escape(s)+'</tspan>').join('')+'</text></g>';cardY+=height+5;
   }
-  const labels=DESTINATIONS.map(d=>{const pos={south:[47,86],north:[29.8,4.8],building:[29.8,45],field:[73,44],stage:[73,86],garden:[29.8,86],sports:[94,86],parking:[29.8,18.5]}[d.id];return '<text x="'+pos[0]+'" y="'+pos[1]+'" text-anchor="middle" font-size="4.4" fill="#516650" paint-order="stroke" stroke="#faf6e8" stroke-width=".4" pointer-events="none">'+escape(d.name)+'</text>';}).join('');
-  const height=Math.max(106,cardY+4),width=annotations?213:126,header=exporting?'<text x="0" y="-13" font-size="8" font-weight="700" fill="#2d5d4a">校园路线与完整文字总结</text><text x="0" y="-5" font-size="4.5" fill="#728373">'+(all?'全部小组':escape(selected().routeName))+' · 上北下南，左西右东</text>':'';
+  const labels=DESTINATIONS.map(d=>{const pos=[d.x+59,d.z+49+(d.id==='north'?3.7:d.id==='parking'?5.5:-4.5)];return '<text x="'+pos[0]+'" y="'+pos[1]+'" text-anchor="middle" font-size="4.4" fill="#516650" paint-order="stroke" stroke="#faf6e8" stroke-width=".4" pointer-events="none">'+escape(d.name)+'</text>';}).join('');
+  const height=Math.max(CAMPUS.depth+8,cardY+4),width=annotations?213:126,header=exporting?'<text x="0" y="-13" font-size="8" font-weight="700" fill="#2d5d4a">校园路线与完整文字总结</text><text x="0" y="-5" font-size="4.5" fill="#728373">'+(all?'全部小组':escape(selected().routeName))+' · 上北下南，左西右东</text>':'';
   return '<svg xmlns="'+NS+'" viewBox="-4 '+(exporting?-23:-4)+' '+width+' '+(height+(exporting?27:0))+'" role="img" aria-label="校园路线与完整文字总结" style="font-family:Microsoft YaHei, sans-serif" '+(exporting?'width="2130" height="'+Math.round((height+27)*10)+'"':'')+'>'+header+baseMap()+'<g>'+lines+pins+'</g>'+labels+'<g transform="translate(111 4)"><path d="M0 1 1.4 6 0 5-1.4 6Z" fill="#e98465"/><text y="0" text-anchor="middle" font-size="4.4" fill="#536c5d">北</text></g>'+chosen.map(g=>studentMapIcon(g)).join('')+annotations+'</svg>';
  }
 
  function paintMap(){const g=selected(),r=getDisplayRoute(g),sentences=summary(g);$('routeMapCanvas').innerHTML=mapSvg();$('mapTitle').textContent=mapAll?'全部小组路线':g.routeName;$('mapSubtitle').textContent=mapAll?'点击彩色路线或组号，查看这条路线的全部句子':r.actual?'已走路线 · 旁边是完整文字总结':'设计路线 · 尚未行走';$('mapSelected').classList.toggle('active',!mapAll);$('mapAll').classList.toggle('active',mapAll);$('mapLegend').innerHTML=(mapAll?groups:[g]).map(v=>'<button data-map-group="'+v.id+'" class="'+(v.id===g.id?'active':'')+'" style="--group:'+v.color+'"><i></i><span>第'+v.id+'组</span></button>').join('');$('mapItinerary').style.setProperty('--group',g.color);$('mapItinerary').innerHTML='<header class="map-summary-header"><span class="summary-group">第'+g.id+'组</span><strong>'+(r.actual?'已走':'设计')+'路线总结</strong><span class="summary-count">'+sentences.length+'段行程</span></header>'+ (sentences.length?summarySteps(sentences):'<p>还没有路线，先拼一句话出发吧。</p>')+'<button id="speakMapSummary" '+(!sentences.length?'disabled':'')+'>🔊 朗读全部句子</button>';$('speakMapSummary').addEventListener('click',()=>speakRoute(sentences.join(''),notify));$('allStart').disabled=!(mapAll?groups:[g]).some(v=>getDisplayRoute(v).path.length>1);}
 
- $('miniClassMap').innerHTML='<svg viewBox="-3 -3 124 104" aria-label="路线小地图">'+baseMap()+'<path id="miniRoute" fill="none" stroke-width="1" stroke-linecap="round"/>'+studentMapIcon(selected(),true)+'</svg>';
+ $('miniClassMap').innerHTML='<svg viewBox="-3 -3 124 '+(CAMPUS.depth+6)+'" aria-label="路线小地图">'+baseMap()+'<path id="miniRoute" fill="none" stroke-width="1" stroke-linecap="round"/>'+studentMapIcon(selected(),true)+'</svg>';
  function openMap(){mapAll=showAll;paintMap();$('routeMapDialog').showModal();keys.clear();touch.clear();}
  $('beginJourney').addEventListener('click',beginJourney);$('pauseJourney').addEventListener('click',pauseJourney);$('viewStudents').addEventListener('click',gather);
  $('classroomNav').addEventListener('click',()=>{enable(true);focus();});$('groupChoices').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(b)selectGroup(Number(b.dataset.group)-1);});
@@ -57221,7 +57223,7 @@ for(const p of places){const row=document.createElement('button');row.className=
 for(const [name,pos]of [['北门',[CAMPUS.north.x,3.9,CAMPUS.north.z]],['南门',[CAMPUS.south.x,3.9,CAMPUS.south.z]]]){const label=document.createElement('button');label.className='place-label';label.dataset.place=name==='南门'?'south':'north';label.innerHTML=arrivalIcon+name;label.addEventListener('click',()=>{if(classroom?.isActive()){classroom.goTo(name==='南门'?'south':'north');return;}setMode('overview');flyTo(new THREE.Vector3(pos[0]+20,16,pos[2]+(name==='南门'?-22:22)),new THREE.Vector3(pos[0],1,pos[2]));notify(`来到${name}`);});$('labels').append(label);labels.set(name,{element:label,position:new THREE.Vector3(...pos)});}
 
 function updateMiniMap(){
- const sx=151/CAMPUS.width,sz=123/CAMPUS.depth,px=x=>4+(x+CAMPUS.width/2)*sx,pz=z=>3+(z+CAMPUS.depth/2)*sz;
+ const sx=151/CAMPUS.width,sz=123/CAMPUS.depth,px=x=>4+(x+CAMPUS.width/2)*sx,pz=z=>3+(z+49)*sz;
  const outer=F.radius+F.lanes*F.laneWidth;
  let html='<rect x="4" y="3" width="151" height="123" rx="6" fill="#eceee5"/>';
  const rect=(x,z,w,d,color,rx=0)=>'<rect x="'+px(x-w/2)+'" y="'+pz(z-d/2)+'" width="'+w*sx+'" height="'+d*sz+'" rx="'+rx+'" fill="'+color+'"/>';
@@ -57255,7 +57257,7 @@ const tourOrder=[places[0],places[1],places[2],places[4],places[3],places[5]];
 function showTour(i){classroom?.enable(false);setMode('overview');tourIndex=(i+tourOrder.length)%tourOrder.length;const p=tourOrder[tourIndex];selectPlace(p,true);$('tourCard').hidden=false;$('tourTitle').textContent=p.name;$('tourStep').textContent=`${String(tourIndex+1).padStart(2,'0')} / 06`;$('tourProgress').style.width=((tourIndex+1)/6*100)+'%';$('tourNext').textContent=tourIndex===5?'完成导览 ✓':'下一站 →';}
 function lookWalk(){camera.lookAt(camera.position.x+Math.sin(walkYaw)*Math.cos(walkPitch)*20,camera.position.y+Math.sin(walkPitch)*20,camera.position.z-Math.cos(walkYaw)*Math.cos(walkPitch)*20);}
 function blocked(x,z){
- const padding=.22;if(Math.abs(x)>CAMPUS.width/2-1.3||Math.abs(z)>CAMPUS.depth/2-1.3)return true;
+ const padding=.22;if(Math.abs(x)>CAMPUS.width/2-1.3||z<-49+1.3||z>CAMPUS.southEdge-1.3)return true;
  return (root?.userData.collisionSolids||[]).some(b=>b.type==='circle'?Math.hypot(x-b.x,z-b.z)<b.radius+padding:
   x>b.minX-padding&&x<b.maxX+padding&&z>b.minZ-padding&&z<b.maxZ+padding);
 }
@@ -57267,13 +57269,13 @@ function labelPositions(){
   const pupil=classroom?.getPosition();const close=mode==='walk'&&(camera.position.distanceTo(position)<8||classroom?.isActive()&&Math.hypot(position.x-pupil.x,position.z-pupil.z)<5);
   const visible=showLabels&&(!selected||selected.id===id)&&projected.z<1&&projected.z>-1&&x>15&&x<w-15&&y>15&&y<h-60&&!close;
   element.style.display=visible?'flex':'none';
-  if(visible){for(let n=0;n<4&&occupied.some(a=>Math.abs(a[0]-x)<76&&Math.abs(a[1]-y)<30);n++)y-=32;occupied.push([x,y]);}
+  if(visible){const maxShift=classroom?.isActive()?1:4;for(let n=0;n<maxShift&&occupied.some(a=>Math.abs(a[0]-x)<76&&Math.abs(a[1]-y)<30);n++)y-=32;occupied.push([x,y]);}
   element.style.left=x+'px';element.style.top=y+'px';
  }
  const yaw=mode==='walk'?walkYaw:Math.atan2(camera.position.x-controls.target.x,camera.position.z-controls.target.z);
  $('compassNeedle').style.transform='rotate('+yaw*180/Math.PI+'deg)';
  $('mapDot').setAttribute('cx',Math.max(7,Math.min(151,(camera.position.x+CAMPUS.width/2)/CAMPUS.width*151+4)));
- $('mapDot').setAttribute('cy',Math.max(6,Math.min(123,(camera.position.z+CAMPUS.depth/2)/CAMPUS.depth*123+3)));
+ $('mapDot').setAttribute('cy',Math.max(6,Math.min(123,(camera.position.z+49)/CAMPUS.depth*123+3)));
 }
 function render(now){requestAnimationFrame(render);if(document.hidden)return;const elapsed=Math.max(0,(now-clockTime)/1000),dt=Math.min(elapsed,.04);clockTime=now;if(transition){const t=Math.min(1,(now-transition.start)/transition.duration),s=1-Math.pow(1-t,3);camera.position.lerpVectors(transition.from,transition.to,s);controls.target.lerpVectors(transition.targetFrom,transition.targetTo,s);camera.lookAt(controls.target);if(t===1)transition=null;}else controls.update();classroom?.update(dt,camera,$('scene').clientWidth,$('scene').clientHeight,elapsed);labelPositions();if(atmosphere&&!reduced)atmosphere.update(dt);renderer.render(scene,camera);}
 let previousViewportWidth=0;
