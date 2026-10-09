@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
- <meta name="campus-version" content="4.8.0">
+ <meta name="campus-version" content="4.9.0">
  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
  <meta name="theme-color" content="#f5f8f5"><meta name="description" content="旋转、缩放，走进北京进步小学的明亮校园。">
  <title>进步小学 · 路线课堂</title><link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
@@ -56153,12 +56153,12 @@ return {createAtmosphere};})();
 const routeEngineModule=(()=>{// Campus paths use photo-relative model units; no measured distance is implied.
 const GROUP_COLORS=['#ed7655','#3d9ae3','#68a34b','#a17ada','#e5a532','#24aa9e','#d46a9d','#637fdf','#ba8b51','#5199ac'];
 const DESTINATIONS=[
- {id:'south',name:'南门',x:-12,z:19.2,icon:'gate'},
+ {id:'south',name:'南门',x:-12,z:28.4,icon:'gate'},
  {id:'building',name:'教学楼',x:-29.2,z:.5,icon:'school'},
  {id:'field',name:'操场',x:14,z:.5,icon:'ball'},
- {id:'stage',name:'主席台',x:14,z:19.2,icon:'flag'},
- {id:'garden',name:'一米菜园',x:-29.2,z:19.2,icon:'leaf'},
- {id:'sports',name:'体育器材棚',x:35,z:19.2,icon:'racket'},
+ {id:'stage',name:'主席台',x:14,z:28.4,icon:'flag'},
+ {id:'garden',name:'一米菜园',x:-29.2,z:28.4,icon:'leaf'},
+ {id:'sports',name:'体育器材棚',x:35,z:28.4,icon:'racket'},
  {id:'parking',name:'停车场',x:-29.2,z:-36.0,icon:'car'},
  {id:'north',name:'北门',x:-29.2,z:-47.9,icon:'gate'},
 ];
@@ -56213,9 +56213,24 @@ class Walker {
 // Upgrade completed cardinal legs saved before the flag arrival points moved.
 const previousArrival={south:{x:-12,z:44.5},building:{x:-26.4,z:.5},field:{x:14,z:.5},stage:{x:14,z:44.5},garden:{x:-26.4,z:44.5},sports:{x:35,z:44.5},parking:{x:-26.4,z:-36},north:{x:-26.4,z:-44.5}};
 const flagArrival=Object.fromEntries(DESTINATIONS.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?40.5:d.z}]));
-function upgradeArrivalRoute(src,layout){if(layout==='compact-campus-v2'||!Array.isArray(src?.trace))return src;const move=p=>{if(!p)return p;const oldRow=layout==='arrival-flags-v1'?40.5:44.5,z=p.z>.5?.5+(p.z-.5)*(19.2-.5)/(oldRow-.5):p.z;return{...p,z};},copy={...src,trace:src.trace.map(move),position:move(src.position)};for(const s of src.sentences||[]){const a=DESTINATIONS.find(d=>d.name===s.startName),b=DESTINATIONS.find(d=>d.name===s.endName),oldA=layout==='arrival-flags-v1'?flagArrival[a?.id]:previousArrival[a?.id],oldB=layout==='arrival-flags-v1'?flagArrival[b?.id]:previousArrival[b?.id];if(!oldA||!oldB||!cardinalDirection(a,b)||!src.trace[s.fromIndex]||!src.trace[s.toIndex]||distance(src.trace[s.fromIndex],oldA)>.01||distance(src.trace[s.toIndex],oldB)>.01)continue;const axis=oldA.x===oldB.x?'z':'x',delta=oldB[axis]-oldA[axis];if(!delta)continue;for(let k=s.fromIndex;k<=s.toIndex;k++){const p=src.trace[k],t=Math.max(0,Math.min(1,(p[axis]-oldA[axis])/delta));copy.trace[k]={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};}if(copy.position&&distance(src.position,oldB)<.01)copy.position={x:b.x,z:b.z};}return copy;}
+const compactArrival=Object.fromEntries(DESTINATIONS.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?19.2:d.z}]));
+function upgradeArrivalRoute(src,layout){
+ if(layout==='south-garden-v3'||!Array.isArray(src?.trace))return src;
+ const oldRow=layout==='compact-campus-v2'?19.2:layout==='arrival-flags-v1'?40.5:44.5;
+ const oldPlaces=layout==='compact-campus-v2'?compactArrival:layout==='arrival-flags-v1'?flagArrival:previousArrival;
+ const row=destination('garden').z,move=p=>p?{...p,z:p.z>.5?.5+(p.z-.5)*(row-.5)/(oldRow-.5):p.z}:p;
+ const copy={...src,trace:src.trace.map(move),position:move(src.position)};
+ for(const s of src.sentences||[]){
+  const a=DESTINATIONS.find(d=>d.name===s.startName),b=DESTINATIONS.find(d=>d.name===s.endName),oldA=oldPlaces[a?.id],oldB=oldPlaces[b?.id];
+  if(!oldA||!oldB||!cardinalDirection(a,b)||!src.trace[s.fromIndex]||!src.trace[s.toIndex]||distance(src.trace[s.fromIndex],oldA)>.01||distance(src.trace[s.toIndex],oldB)>.01)continue;
+  const axis=oldA.x===oldB.x?'z':'x',delta=oldB[axis]-oldA[axis];if(!delta)continue;
+  for(let k=s.fromIndex;k<=s.toIndex;k++){const p=src.trace[k],t=Math.max(0,Math.min(1,(p[axis]-oldA[axis])/delta));copy.trace[k]={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};}
+  if(copy.position&&distance(src.position,oldB)<.01)copy.position={x:b.x,z:b.z};
+ }
+ return copy;
+}
 function sanitizeGroups(data,nav){if(!data||data.version!==1||!Array.isArray(data.groups)||data.groups.length!==10)throw Error('请导入本课件导出的10组路线文件。');const groups=makeGroups();for(let i=0;i<10;i++){const src=upgradeArrivalRoute(data.groups[i],data.layout);if(!src||src.id!==i+1||!destination(src.start)||!Array.isArray(src.stops)||src.stops.length>32||src.stops.some(id=>!destination(id)))throw Error('路线文件中的分组或地点无效。');const g=groups[i];g.start=src.start;g.stops=[...src.stops];g.routeName=String(src.routeName||g.routeName).slice(0,60);g.kind=src.kind==='recorded'?'recorded':'planned';if(src.trace!==undefined&&(!Array.isArray(src.trace)||src.trace.length>15000))throw Error('录制路线数据无效。');g.trace=(src.trace||[]).map(p=>{if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.z)||nav.blocked(p.x,p.z))throw Error('录制路线含有校园范围外或障碍物内的点。');return{x:p.x,z:p.z};});if(g.kind==='recorded')for(let j=1;j<g.trace.length;j++)if(!nav.clear(g.trace[j-1],g.trace[j]))throw Error('录制路线穿过障碍物，请重新录制。');if(src.sentences!==undefined){if(!Array.isArray(src.sentences)||src.sentences.length>15000)throw Error('路线句子数据无效。');let last=0;g.sentences=src.sentences.map(v=>{if(!v||!['北','东','南','西'].includes(v.heading)||!Number.isInteger(v.fromIndex)||!Number.isInteger(v.toIndex)||v.fromIndex<last||v.toIndex<=v.fromIndex||v.toIndex>=g.trace.length||typeof v.startName!=='string'||typeof v.endName!=='string'||!v.startName.length||!v.endName.length||v.startName.length>40||v.endName.length>40)throw Error('路线句子与足迹不对应。');last=v.toIndex;return{startName:v.startName,endName:v.endName,heading:v.heading,fromIndex:v.fromIndex,toIndex:v.toIndex};});}g.elapsed=Number.isFinite(src.elapsed)?Math.max(0,src.elapsed):0;g.lastPlace=destination(src.lastPlace)?.id||null;if(src.position&&!nav.blocked(src.position.x,src.position.z))g.position={x:src.position.x,z:src.position.z};}return groups;}
-function serializeGroups(groups){return{version:1,layout:'compact-campus-v2',title:'北京进步小学 · 10组校园路线',savedAt:new Date().toISOString(),groups:groups.map(({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace})=>({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace}))};}
+function serializeGroups(groups){return{version:1,layout:'south-garden-v3',title:'北京进步小学 · 10组校园路线',savedAt:new Date().toISOString(),groups:groups.map(({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace})=>({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace}))};}
 
 return {Navigation,GROUP_COLORS,DESTINATIONS,destination,cardinalDirection,alignedDestinations,makeGroups,planRoute,pathLength,Walker,JourneyRecorder,appendTrace,serializeGroups,sanitizeGroups,direction,distance,resolveMovement,visibleRouteGroups};})();
 const lessonGroundModule=(()=>{const {DESTINATIONS,destination}=routeEngineModule;
@@ -56262,7 +56277,7 @@ const {createCampus,setGlyphData,CAMPUS}=(()=>{const {createLandscape}=landscape
 const {createLessonGround}=lessonGroundModule;
 // Photo-relative model units normalized around a 20.8-unit building, not surveyed metres.
 // Source evidence and unresolved details are documented in PHOTO-AUDIT.md.
-const CAMPUS={width:118,depth:79,centerZ:-9.5,southEdge:30,gardenDepthScale:.55,building:{x:-35.2,z:.5,rotation:Math.PI/2},field:{x:14,z:-6,straight:40,radius:16.7,lanes:4,laneWidth:1.12},stage:{x:14,z:25.7},garden:{x:-29.1,z:22.5},sports:{x:35,z:25.7},parking:{x:-41.5,z:-38.25,width:22.1,depth:18.5},south:{x:-12,z:29.75},north:{x:-26.4,z:-48.75}};
+const CAMPUS={width:118,depth:88.5,centerZ:-4.75,southEdge:39.5,gardenDepthScale:.25,building:{x:-35.2,z:.5,rotation:Math.PI/2},field:{x:14,z:-6,straight:40,radius:16.7,lanes:4,laneWidth:1.12},stage:{x:14,z:34.9},garden:{x:-39.82,z:30.8},sports:{x:35,z:34.9},parking:{x:-41.5,z:-38.25,width:22.1,depth:18.5},south:{x:-12,z:39},north:{x:-26.4,z:-48.75}};
 const mats={};const boxGeo=new THREE.BoxGeometry(1,1,1),sphereGeo=new THREE.SphereGeometry(1,10,8),cylinderGeo=new THREE.CylinderGeometry(1,1,1,12),towerGeo=new THREE.CylinderGeometry(1,1,1,96);
 const palette={'#73a5bf':'#4388af','#81b1c0':'#558fa7','#d57c62':'#bc6048','#95bb69':'#6c9f3e','#a6c779':'#7eae45','#81aa5c':'#609438','#99bc7a':'#83ad58','#86ad6c':'#709947','#aec98c':'#9aba73','#98bd79':'#81ae59'};
 function mat(color,options={}){color=palette[color]||color;const key=color+JSON.stringify(options);return mats[key]??=(new THREE.MeshStandardMaterial({color,roughness:.8,...options}));}
@@ -56848,7 +56863,7 @@ function optimize(root){root.updateMatrixWorld(true);const buckets=new Map();con
 function createCampus(scene){
  const root=group(scene,'北京进步小学'),W=CAMPUS.width,D=CAMPUS.depth;
  box(root,W,.35,D,0,-.14,CAMPUS.centerZ,'#d6ccb6');box(root,W+.45,.14,D+.45,0,.08,CAMPUS.centerZ,'#eee8d6');
- box(root,22,.06,72,-36.7,.175,-4.5,'#dddfce');
+ box(root,22,.06,79.25,-36.7,.175,-.875,'#dddfce');
  const edgeX=W/2-.25,edgeNorth=-48.75,edgeSouth=CAMPUS.south.z;
  box(root,.50,1.90,18.4,-edgeX,1,-39.55,'#d5c9b0');box(root,.50,1.90,9.4,-edgeX,1,edgeSouth-4.7,'#d5c9b0');
  // Photographed west frontage uses open green railings, not an opaque wall.
@@ -56867,9 +56882,9 @@ function createCampus(scene){
  for(const[x,z,scale,seed]of [[-55,-27,1.48,2],[-56,-13,1.28,5],[-56,8,1.60,8],[-54,30,1.65,2],[-48,39,1.80,7],
   [-22,39,1.72,8],[-8,38,1.85,1],[7,40,1.62,7],[20,41,1.87,4],[34,40,1.70,3],[47,38,1.58,8],
   [57,-22,1.36,4],[57,1,1.48,3],[55,23,1.41,2],[-22,-42,1.34,8],[1,-43,1.49,7],[25,-42,1.42,4],[49,-40,1.25,2]]){if(z>=18)continue;if(x<=-54)bareStreetTree(root,x,z,scale*.88,seed);else tree(root,x,z,scale,seed);}
- diamondMesh(root,82,3.20,7,2.01,32.5);for(let k=0;k<=10;k++)box(root,.07,3.4,.07,-34+k*8.2,1.98,32.55,'#91a38b');
+ diamondMesh(root,82,3.20,7,2.01,CAMPUS.south.z+2.75);for(let k=0;k<=10;k++)box(root,.07,3.4,.07,-34+k*8.2,1.98,CAMPUS.south.z+2.80,'#91a38b');
  // Collision regions are transformed from the same local solids used by the landmarks.
- const solids=[{name:'校园南边界',type:'rect',minX:-59,maxX:59,minZ:30.3,maxZ:49}];
+ const solids=[{name:'校园南边界',type:'rect',minX:-59,maxX:59,minZ:CAMPUS.southEdge+.3,maxZ:49}];
  function rect(g,x0,x1,z0,z1){
   const a=g.localToWorld(new THREE.Vector3(x0,0,z0)),b=g.localToWorld(new THREE.Vector3(x1,0,z1));
   solids.push({name:g.name,type:'rect',minX:Math.min(a.x,b.x),maxX:Math.max(a.x,b.x),minZ:Math.min(a.z,b.z),maxZ:Math.max(a.z,b.z)});
