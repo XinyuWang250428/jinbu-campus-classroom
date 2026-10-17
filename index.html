@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
- <meta name="campus-version" content="4.9.2">
+ <meta name="campus-version" content="4.9.3">
  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
  <meta name="theme-color" content="#f5f8f5"><meta name="description" content="旋转、缩放，走进北京进步小学的明亮校园。">
  <title>进步小学 · 路线课堂</title><link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
@@ -56277,7 +56277,8 @@ const {createCampus,setGlyphData,CAMPUS}=(()=>{const {createLandscape}=landscape
 const {createLessonGround}=lessonGroundModule;
 // Photo-relative model units normalized around a 20.8-unit building, not surveyed metres.
 // Source evidence and unresolved details are documented in PHOTO-AUDIT.md.
-const CAMPUS={width:118,depth:88.5,centerZ:-4.75,southEdge:39.5,gardenDepthScale:.25,building:{x:-35.2,z:.5,rotation:Math.PI/2},field:{x:14,z:-6,straight:40,radius:16.7,lanes:4,laneWidth:1.12},stage:{x:14,z:34.9},garden:{x:-39.82,z:30.8,rows:3,columns:4,columnGap:2.2},sports:{x:35,z:34.9},parking:{x:-41.5,z:-38.25,width:22.1,depth:18.5},south:{x:-12,z:39},north:{x:-26.4,z:-48.75}};
+// Gate model placement is independent of the lesson's arrival flags in route-engine.js.
+const CAMPUS={width:118,depth:88.5,centerZ:-4.75,southEdge:39.5,gardenDepthScale:.25,building:{x:-35.2,z:.5,rotation:Math.PI/2},field:{x:14,z:-6,straight:40,radius:16.7,lanes:4,laneWidth:1.12},stage:{x:14,z:34.9},garden:{x:-39.82,z:30.8,rows:3,columns:4,columnGap:2.2},sports:{x:35,z:34.9},parking:{x:-41.5,z:-38.25,width:22.1,depth:18.5},south:{x:-12,z:39},north:{x:-49,z:-48.75}};
 const mats={};const boxGeo=new THREE.BoxGeometry(1,1,1),sphereGeo=new THREE.SphereGeometry(1,10,8),cylinderGeo=new THREE.CylinderGeometry(1,1,1,12),towerGeo=new THREE.CylinderGeometry(1,1,1,96);
 const palette={'#73a5bf':'#4388af','#81b1c0':'#558fa7','#d57c62':'#bc6048','#95bb69':'#6c9f3e','#a6c779':'#7eae45','#81aa5c':'#609438','#99bc7a':'#83ad58','#86ad6c':'#709947','#aec98c':'#9aba73','#98bd79':'#81ae59'};
 function mat(color,options={}){color=palette[color]||color;const key=color+JSON.stringify(options);return mats[key]??=(new THREE.MeshStandardMaterial({color,roughness:.8,...options}));}
