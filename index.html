@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
- <meta name="campus-version" content="4.9.3">
+ <meta name="campus-version" content="4.9.4">
  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
  <meta name="theme-color" content="#f5f8f5"><meta name="description" content="旋转、缩放，走进北京进步小学的明亮校园。">
  <title>进步小学 · 路线课堂</title><link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
@@ -56159,8 +56159,8 @@ const DESTINATIONS=[
  {id:'stage',name:'主席台',x:14,z:28.4,icon:'flag'},
  {id:'garden',name:'一米菜园',x:-29.2,z:28.4,icon:'leaf'},
  {id:'sports',name:'体育器材棚',x:35,z:28.4,icon:'racket'},
- {id:'parking',name:'停车场',x:-29.2,z:-36.0,icon:'car'},
- {id:'north',name:'北门',x:-29.2,z:-47.9,icon:'gate'},
+ {id:'parking',name:'停车场',x:-29.2,z:-47.9,icon:'car'},
+ {id:'north',name:'北门',x:-56.5,z:-47.9,icon:'gate'},
 ];
 const destination=id=>DESTINATIONS.find(d=>d.id===id);
 function cardinalDirection(a,b){if(typeof a==='string')a=destination(a);if(typeof b==='string')b=destination(b);if(!a||!b)return null;const dx=b.x-a.x,dz=b.z-a.z;if(Math.abs(dx)<.01&&Math.abs(dz)>.01)return dz<0?'北':'南';if(Math.abs(dz)<.01&&Math.abs(dx)>.01)return dx<0?'西':'东';return null;}
@@ -56212,16 +56212,17 @@ class Walker {
 }
 // Upgrade completed cardinal legs saved before the flag arrival points moved.
 const previousArrival={south:{x:-12,z:44.5},building:{x:-26.4,z:.5},field:{x:14,z:.5},stage:{x:14,z:44.5},garden:{x:-26.4,z:44.5},sports:{x:35,z:44.5},parking:{x:-26.4,z:-36},north:{x:-26.4,z:-44.5}};
-const flagArrival=Object.fromEntries(DESTINATIONS.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?40.5:d.z}]));
-const compactArrival=Object.fromEntries(DESTINATIONS.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?19.2:d.z}]));
+const southGardenDestinations=DESTINATIONS.map(d=>({...d,...(d.id==='parking'?{x:-29.2,z:-36}:d.id==='north'?{x:-29.2,z:-47.9}:{})}));
+const flagArrival=Object.fromEntries(southGardenDestinations.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?40.5:d.z}]));
+const compactArrival=Object.fromEntries(southGardenDestinations.map(d=>[d.id,{x:d.x,z:['south','stage','garden','sports'].includes(d.id)?19.2:d.z}]));
 function upgradeArrivalRoute(src,layout){
- if(layout==='south-garden-v3'||!Array.isArray(src?.trace))return src;
+ if(layout==='south-garden-v3'||layout==='northwest-flags-v4'||!Array.isArray(src?.trace))return src;
  const oldRow=layout==='compact-campus-v2'?19.2:layout==='arrival-flags-v1'?40.5:44.5;
  const oldPlaces=layout==='compact-campus-v2'?compactArrival:layout==='arrival-flags-v1'?flagArrival:previousArrival;
  const row=destination('garden').z,move=p=>p?{...p,z:p.z>.5?.5+(p.z-.5)*(row-.5)/(oldRow-.5):p.z}:p;
  const copy={...src,trace:src.trace.map(move),position:move(src.position)};
  for(const s of src.sentences||[]){
-  const a=DESTINATIONS.find(d=>d.name===s.startName),b=DESTINATIONS.find(d=>d.name===s.endName),oldA=oldPlaces[a?.id],oldB=oldPlaces[b?.id];
+  const a=southGardenDestinations.find(d=>d.name===s.startName),b=southGardenDestinations.find(d=>d.name===s.endName),oldA=oldPlaces[a?.id],oldB=oldPlaces[b?.id];
   if(!oldA||!oldB||!cardinalDirection(a,b)||!src.trace[s.fromIndex]||!src.trace[s.toIndex]||distance(src.trace[s.fromIndex],oldA)>.01||distance(src.trace[s.toIndex],oldB)>.01)continue;
   const axis=oldA.x===oldB.x?'z':'x',delta=oldB[axis]-oldA[axis];if(!delta)continue;
   for(let k=s.fromIndex;k<=s.toIndex;k++){const p=src.trace[k],t=Math.max(0,Math.min(1,(p[axis]-oldA[axis])/delta));copy.trace[k]={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};}
@@ -56229,8 +56230,31 @@ function upgradeArrivalRoute(src,layout){
  }
  return copy;
 }
-function sanitizeGroups(data,nav){if(!data||data.version!==1||!Array.isArray(data.groups)||data.groups.length!==10)throw Error('请导入本课件导出的10组路线文件。');const groups=makeGroups();for(let i=0;i<10;i++){const src=upgradeArrivalRoute(data.groups[i],data.layout);if(!src||src.id!==i+1||!destination(src.start)||!Array.isArray(src.stops)||src.stops.length>32||src.stops.some(id=>!destination(id)))throw Error('路线文件中的分组或地点无效。');const g=groups[i];g.start=src.start;g.stops=[...src.stops];g.routeName=String(src.routeName||g.routeName).slice(0,60);g.kind=src.kind==='recorded'?'recorded':'planned';if(src.trace!==undefined&&(!Array.isArray(src.trace)||src.trace.length>15000))throw Error('录制路线数据无效。');g.trace=(src.trace||[]).map(p=>{if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.z)||nav.blocked(p.x,p.z))throw Error('录制路线含有校园范围外或障碍物内的点。');return{x:p.x,z:p.z};});if(g.kind==='recorded')for(let j=1;j<g.trace.length;j++)if(!nav.clear(g.trace[j-1],g.trace[j]))throw Error('录制路线穿过障碍物，请重新录制。');if(src.sentences!==undefined){if(!Array.isArray(src.sentences)||src.sentences.length>15000)throw Error('路线句子数据无效。');let last=0;g.sentences=src.sentences.map(v=>{if(!v||!['北','东','南','西'].includes(v.heading)||!Number.isInteger(v.fromIndex)||!Number.isInteger(v.toIndex)||v.fromIndex<last||v.toIndex<=v.fromIndex||v.toIndex>=g.trace.length||typeof v.startName!=='string'||typeof v.endName!=='string'||!v.startName.length||!v.endName.length||v.startName.length>40||v.endName.length>40)throw Error('路线句子与足迹不对应。');last=v.toIndex;return{startName:v.startName,endName:v.endName,heading:v.heading,fromIndex:v.fromIndex,toIndex:v.toIndex};});}g.elapsed=Number.isFinite(src.elapsed)?Math.max(0,src.elapsed):0;g.lastPlace=destination(src.lastPlace)?.id||null;if(src.position&&!nav.blocked(src.position.x,src.position.z))g.position={x:src.position.x,z:src.position.z};}return groups;}
-function serializeGroups(groups){return{version:1,layout:'south-garden-v3',title:'北京进步小学 · 10组校园路线',savedAt:new Date().toISOString(),groups:groups.map(({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace})=>({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace}))};}
+// Keep completed named journeys attached to the moved flags. Old northbound
+// legs to the gate now turn at the parking flag, with one sentence per axis.
+function upgradeNorthwestFlags(src,layout){
+ if(layout==='northwest-flags-v4'||!src||!Array.isArray(src.trace))return src;
+ const oldPlace=name=>southGardenDestinations.find(d=>d.name===name),at=(p,d)=>p&&d&&Number.isFinite(p.x)&&Number.isFinite(p.z)&&distance(p,d)<.01;
+ const legs=(a,b)=>cardinalDirection(a,b)?[a,b]:a?.id!==b?.id&&(a?.id==='north'||b?.id==='north')?[a,destination('parking'),b]:null;
+ const copy={...src};
+ if(Array.isArray(src.stops)){let from=destination(src.start);const stops=[];for(const id of src.stops){const to=destination(id),path=from&&to&&legs(from,to);stops.push(...(path?path.slice(1).map(d=>d.id):[id]));from=to;}if(stops.length<=32)copy.stops=stops;}
+ if(!src.trace.length){const p=southGardenDestinations.find(d=>['parking','north'].includes(d.id)&&at(src.position,d));if(p)copy.position={x:destination(p.id).x,z:destination(p.id).z};return copy;}
+ const changed=(src.sentences||[]).some(s=>['停车场','北门'].includes(s?.startName)||['停车场','北门'].includes(s?.endName));
+ if(!changed)return copy;
+ let cursor=0;const trace=[],sentences=[];
+ for(const s of src.sentences||[]){
+  const a=oldPlace(s?.startName),b=oldPlace(s?.endName),path=a&&b&&legs(destination(a.id),destination(b.id));
+  if(!path||s.fromIndex!==cursor||!Number.isInteger(s.toIndex)||s.toIndex<=cursor||s.toIndex>=src.trace.length||!at(src.trace[cursor],a)||!at(src.trace[s.toIndex],b)||src.trace.slice(cursor,s.toIndex+1).some(p=>!p||(a.x===b.x?Math.abs(p.x-a.x)>.01:Math.abs(p.z-a.z)>.01))){if(['parking','north'].includes(copy.lastPlace))copy.lastPlace=null;return copy;}
+  if(!trace.length)trace.push({x:path[0].x,z:path[0].z});
+  for(let i=1;i<path.length;i++){const fromIndex=trace.length-1;trace.push({x:path[i].x,z:path[i].z});sentences.push({startName:path[i-1].name,endName:path[i].name,heading:cardinalDirection(path[i-1],path[i]),fromIndex,toIndex:trace.length-1});}
+  cursor=s.toIndex;
+ }
+ if(cursor!==src.trace.length-1){if(['parking','north'].includes(copy.lastPlace))copy.lastPlace=null;return copy;}
+ copy.trace=trace;copy.sentences=sentences;if(at(src.position,src.trace.at(-1)))copy.position={...trace.at(-1)};
+ return copy;
+}
+function sanitizeGroups(data,nav){if(!data||data.version!==1||!Array.isArray(data.groups)||data.groups.length!==10)throw Error('请导入本课件导出的10组路线文件。');const groups=makeGroups();for(let i=0;i<10;i++){const src=upgradeNorthwestFlags(upgradeArrivalRoute(data.groups[i],data.layout),data.layout);if(!src||src.id!==i+1||!destination(src.start)||!Array.isArray(src.stops)||src.stops.length>32||src.stops.some(id=>!destination(id)))throw Error('路线文件中的分组或地点无效。');const g=groups[i];g.start=src.start;g.stops=[...src.stops];g.routeName=String(src.routeName||g.routeName).slice(0,60);g.kind=src.kind==='recorded'?'recorded':'planned';if(src.trace!==undefined&&(!Array.isArray(src.trace)||src.trace.length>15000))throw Error('录制路线数据无效。');g.trace=(src.trace||[]).map(p=>{if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.z)||nav.blocked(p.x,p.z))throw Error('录制路线含有校园范围外或障碍物内的点。');return{x:p.x,z:p.z};});if(g.kind==='recorded')for(let j=1;j<g.trace.length;j++)if(!nav.clear(g.trace[j-1],g.trace[j]))throw Error('录制路线穿过障碍物，请重新录制。');if(src.sentences!==undefined){if(!Array.isArray(src.sentences)||src.sentences.length>15000)throw Error('路线句子数据无效。');let last=0;g.sentences=src.sentences.map(v=>{if(!v||!['北','东','南','西'].includes(v.heading)||!Number.isInteger(v.fromIndex)||!Number.isInteger(v.toIndex)||v.fromIndex<last||v.toIndex<=v.fromIndex||v.toIndex>=g.trace.length||typeof v.startName!=='string'||typeof v.endName!=='string'||!v.startName.length||!v.endName.length||v.startName.length>40||v.endName.length>40)throw Error('路线句子与足迹不对应。');last=v.toIndex;return{startName:v.startName,endName:v.endName,heading:v.heading,fromIndex:v.fromIndex,toIndex:v.toIndex};});}g.elapsed=Number.isFinite(src.elapsed)?Math.max(0,src.elapsed):0;g.lastPlace=destination(src.lastPlace)?.id||null;if(src.position&&!nav.blocked(src.position.x,src.position.z))g.position={x:src.position.x,z:src.position.z};}return groups;}
+function serializeGroups(groups){return{version:1,layout:'northwest-flags-v4',title:'北京进步小学 · 10组校园路线',savedAt:new Date().toISOString(),groups:groups.map(({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace})=>({id,start,stops,trace,sentences,position,routeName,kind,elapsed,lastPlace}))};}
 
 return {Navigation,GROUP_COLORS,DESTINATIONS,destination,cardinalDirection,alignedDestinations,makeGroups,planRoute,pathLength,Walker,JourneyRecorder,appendTrace,serializeGroups,sanitizeGroups,direction,distance,resolveMovement,visibleRouteGroups};})();
 const lessonGroundModule=(()=>{const {DESTINATIONS,destination}=routeEngineModule;
@@ -57043,7 +57067,7 @@ function createRouteTeaching(options){
   $('practiceRestart').addEventListener('click',startPractice);
   $('practiceKnowledge').addEventListener('click',()=>$('openKnowledge').click());
  }
- function startPractice(){options.clearKeys();quiz={index:0,score:0,answered:false,questions:[{from:'field',to:'building'},{from:'stage',to:'sports'},{from:'building',to:'parking'},{from:'field',to:'stage'},{from:'south',to:'garden'},{from:'garden',to:'stage'},{from:'stage',to:'field'},{from:'field',to:'building'},{from:'building',to:'parking'},{from:'garden',to:'north'}]};const opening=$('practicePanel').hidden;$('practicePanel').hidden=false;document.body.classList.add('practice-active');if(opening)options.practiceView(true);renderQuiz();}
+ function startPractice(){options.clearKeys();quiz={index:0,score:0,answered:false,questions:[{from:'field',to:'building'},{from:'stage',to:'sports'},{from:'building',to:'parking'},{from:'field',to:'stage'},{from:'south',to:'garden'},{from:'garden',to:'stage'},{from:'stage',to:'field'},{from:'field',to:'building'},{from:'building',to:'parking'},{from:'parking',to:'north'}]};const opening=$('practicePanel').hidden;$('practicePanel').hidden=false;document.body.classList.add('practice-active');if(opening)options.practiceView(true);renderQuiz();}
  $('practiceClose').addEventListener('click',closePractice);document.addEventListener('keydown',e=>{if(e.code==='Escape'&&!$('modal').open&&!$('routeMapDialog').open&&!$('routeToolsDialog').open)closePractice();});
  $('openPractice').addEventListener('click',startPractice);reset();
  return{reset,feedback,closePractice,arrived:(id)=>{reset(id);feedback('已到达'+name(id)+'，继续填下一句。',true);},getState:()=>({draft:{...draft},slot,startLocked:!!lockedStart(),allowedDestinations:alignedDestinations(draft.start,draft.heading).map(d=>d.id),practice:quiz&&{index:quiz.index,score:quiz.score,answered:quiz.answered,open:!$('practicePanel').hidden,from:quiz.questions[quiz.index].from,to:quiz.questions[quiz.index].to}})};
